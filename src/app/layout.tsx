@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Link from "next/link";
 import "./globals.css";
+import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "KdyVoda - Event Scheduling",
-  description: "Schedule your water rafting events with friends easily",
+  title: "KdyVoda - Event Planning Made Easy",
+  description: "Schedule your water rafting events with ease",
 };
 
 export default function RootLayout({
@@ -17,54 +17,33 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full bg-slate-50">
-      <body className={`${inter.className} h-full antialiased`}>
-        <div className="min-h-full flex flex-col">
-          <nav className="bg-white border-b border-slate-200">
+      <body className={`${inter.className} h-full`}>
+        <div className="min-h-full">
+          <nav className="bg-white shadow-sm">
             <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-              <div className="flex h-16 items-center justify-between">
-                <div className="flex items-center">
-                  <Link 
-                    href="/" 
-                    className="flex items-center group"
-                  >
-                    <svg
-                      className="h-8 w-8 text-blue-600 group-hover:text-blue-700 transition-colors"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                    <span className="ml-2.5 text-xl font-semibold text-slate-900">KdyVoda</span>
-                  </Link>
-                </div>
-                <div className="flex items-center">
+              <div className="flex h-16 justify-between">
+                <div className="flex">
                   <Link
                     href="/"
-                    className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-150"
+                    className="flex items-center px-2 text-lg font-semibold text-slate-900"
                   >
-                    Create Event
+                    KdyVoda
                   </Link>
                 </div>
               </div>
             </div>
           </nav>
 
-          <main className="flex-1 py-12 bg-slate-50">
-            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <main>
+            <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
               {children}
             </div>
           </main>
 
-          <footer className="bg-white border-t border-slate-200">
-            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-              <p className="text-center text-sm text-slate-600">
-                KdyVoda — Schedule your water rafting events with friends easily
+          <footer className="bg-white mt-auto border-t border-slate-200">
+            <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+              <p className="text-center text-sm text-slate-500">
+                &copy; {new Date().getFullYear()} KdyVoda. All rights reserved.
               </p>
             </div>
           </footer>
