@@ -1,4 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+/* eslint-disable */
+import { PrismaClient } from "@prisma/client";
 
 const prismaClientSingleton = () => {
   return new PrismaClient();
@@ -10,8 +11,8 @@ declare global {
 
 const prisma = globalThis.prisma ?? prismaClientSingleton();
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== "production") {
   globalThis.prisma = prisma;
 }
 
-export default prisma; 
+export default prisma;

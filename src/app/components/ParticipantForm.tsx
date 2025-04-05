@@ -33,7 +33,7 @@ export default function ParticipantForm({ eventId, availableDates, onSubmit }: P
             name,
             eventId,
             dates: selectedDates.map(date => {
-              // Create a new date at midnight UTC to match the stored dates
+              // Create a new date at midnight UTC
               const d = new Date(date);
               d.setUTCHours(0, 0, 0, 0);
               return d.toISOString();

@@ -1,8 +1,6 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { nanoid } from 'nanoid';
-
-const prisma = new PrismaClient();
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { nanoid } from "nanoid";
 
 export async function POST(request: Request) {
   try {
@@ -33,9 +31,9 @@ export async function POST(request: Request) {
       managementToken,
     });
   } catch (error) {
-    console.error('Error creating event:', error);
+    console.error("Error creating event:", error);
     return NextResponse.json(
-      { error: 'Failed to create event' },
+      { error: "Failed to create event" },
       { status: 500 }
     );
   }
@@ -44,12 +42,12 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    const managementToken = searchParams.get('managementToken');
+    const id = searchParams.get("id");
+    const managementToken = searchParams.get("managementToken");
 
     if (!id) {
       return NextResponse.json(
-        { error: 'Event ID is required' },
+        { error: "Event ID is required" },
         { status: 400 }
       );
     }
@@ -60,17 +58,18 @@ export async function GET(request: Request) {
         eventDates: true,
         participants: {
           include: {
-            participantDates: true,
-          },
-        },
+            participantDates: {
+              include: {
+                eventDate: true
+              }
+            }
+          }
+        }
       },
     });
 
     if (!event) {
-      return NextResponse.json(
-        { error: 'Event not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
     // Only include managementToken if it matches
@@ -79,13 +78,21 @@ export async function GET(request: Request) {
     }
 
     // Remove managementToken from response if not authorized
-    const { managementToken: _, ...eventWithoutToken } = event;
+    const eventWithoutToken = {
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      createdAt: event.createdAt,
+      updatedAt: event.updatedAt,
+      eventDates: event.eventDates,
+      participants: event.participants
+    };
     return NextResponse.json(eventWithoutToken);
   } catch (error) {
-    console.error('Error fetching event:', error);
+    console.error("Error fetching event:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch event' },
+      { error: "Failed to fetch event" },
       { status: 500 }
     );
   }
-} 
+}
