@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
-import { EventSourceInput } from '@fullcalendar/core';
+"use client";
+
+import { useEffect, useState } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction";
+import { EventSourceInput } from "@fullcalendar/core";
 
 interface CalendarProps {
   availableDates?: Date[];
@@ -24,33 +26,34 @@ export default function Calendar({
   useEffect(() => {
     // If there are available dates, show them in blue
     // If not, we're in event creation mode and don't need to show available dates
-    const normalizedAvailableDates = availableDates.length > 0 
-      ? availableDates.map(date => {
-          const d = new Date(date);
-          d.setUTCHours(0, 0, 0, 0);
-          return d;
-        })
-      : [];
+    const normalizedAvailableDates =
+      availableDates.length > 0
+        ? availableDates.map((date) => {
+            const d = new Date(date);
+            d.setUTCHours(0, 0, 0, 0);
+            return d;
+          })
+        : [];
 
-    const normalizedSelectedDates = selectedDates.map(date => {
+    const normalizedSelectedDates = selectedDates.map((date) => {
       const d = new Date(date);
       d.setUTCHours(0, 0, 0, 0);
       return d;
     });
 
     const newEvents = [
-      ...normalizedAvailableDates.map(date => ({
+      ...normalizedAvailableDates.map((date) => ({
         start: date,
         allDay: true,
-        display: 'background',
-        backgroundColor: '#dbeafe', // blue-100 for available dates
+        display: "background",
+        backgroundColor: "#dbeafe", // blue-100 for available dates
       })),
-      ...normalizedSelectedDates.map(date => ({
+      ...normalizedSelectedDates.map((date) => ({
         start: date,
         allDay: true,
-        display: 'background',
-        backgroundColor: '#dcfce7', // green-100 for selected dates
-        classNames: ['selected-date'],
+        display: "background",
+        backgroundColor: "#dcfce7", // green-100 for selected dates
+        classNames: ["selected-date"],
       })),
     ];
     setEvents(newEvents);
@@ -60,14 +63,17 @@ export default function Calendar({
     if (onDateSelect && selectable) {
       const clickedDate = new Date(info.date);
       clickedDate.setUTCHours(0, 0, 0, 0);
-      
+
       // If there are available dates, check if the clicked date is available
       // If there are no available dates, we're in event creation mode and all dates are selectable
-      if (availableDates.length === 0 || availableDates.some(date => {
-        const availableDate = new Date(date);
-        availableDate.setUTCHours(0, 0, 0, 0);
-        return availableDate.getTime() === clickedDate.getTime();
-      })) {
+      if (
+        availableDates.length === 0 ||
+        availableDates.some((date) => {
+          const availableDate = new Date(date);
+          availableDate.setUTCHours(0, 0, 0, 0);
+          return availableDate.getTime() === clickedDate.getTime();
+        })
+      ) {
         onDateSelect(clickedDate);
       }
     }
@@ -88,7 +94,7 @@ export default function Calendar({
           --fc-neutral-bg-color: #ffffff;
           --fc-page-bg-color: #ffffff;
         }
-        
+
         .calendar-wrapper .fc-theme-standard td,
         .calendar-wrapper .fc-theme-standard th {
           border-color: var(--fc-border-color);
@@ -144,7 +150,7 @@ export default function Calendar({
         }
 
         .calendar-wrapper .fc-daygrid-day.selected-date::after {
-          content: '✓';
+          content: "✓";
           position: absolute;
           top: 4px;
           right: 4px;
@@ -181,7 +187,8 @@ export default function Calendar({
           background-color: white;
           border: 1px solid #e2e8f0;
           border-radius: 0.5rem;
-          box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+          box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1),
+            0 1px 2px -1px rgb(0 0 0 / 0.1);
         }
 
         .calendar-wrapper .fc-day-disabled {
@@ -220,9 +227,9 @@ export default function Calendar({
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth',
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth",
         }}
         events={events}
         dateClick={handleDateClick}
@@ -230,8 +237,10 @@ export default function Calendar({
         weekends={true}
         height="auto"
         fixedWeekCount={false}
-        dayCellContent={dateContent ? (arg) => dateContent(arg.date) : undefined}
+        dayCellContent={
+          dateContent ? (arg) => dateContent(arg.date) : undefined
+        }
       />
     </div>
   );
-} 
+}
