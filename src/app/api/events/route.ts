@@ -4,6 +4,8 @@ import { nanoid } from "nanoid";
 
 export async function POST(request: Request) {
   try {
+    await prisma.$connect();
+    
     let body;
     try {
       body = await request.json();
@@ -32,7 +34,7 @@ export async function POST(request: Request) {
     const managementToken = nanoid();
 
     try {
-      // First create the event
+      // Create the event
       const event = await prisma.event.create({
         data: {
           title,
@@ -41,19 +43,16 @@ export async function POST(request: Request) {
         },
       });
 
-      // Then create the dates in batches of 5
-      const batchSize = 5;
-      for (let i = 0; i < dates.length; i += batchSize) {
-        const batch = dates.slice(i, i + batchSize);
-        await prisma.eventDate.createMany({
-          data: batch.map(date => ({
-            date: new Date(date),
-            eventId: event.id,
-          })),
-        });
-      }
+      // Create all dates at once
+      await prisma.eventDate.createMany({
+        data: dates.map(date => ({
+          id: nanoid(),
+          date: new Date(date),
+          eventId: event.id,
+        })),
+      });
 
-      // Fetch the complete event with dates
+      // Fetch the complete event
       const completeEvent = await prisma.event.findUnique({
         where: { id: event.id },
         include: {
@@ -84,6 +83,8 @@ export async function POST(request: Request) {
       { error: "Failed to create event: " + (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
