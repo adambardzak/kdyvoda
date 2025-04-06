@@ -2,38 +2,38 @@ import Link from "next/link";
 import ParticipantForm from "@/app/components/ParticipantForm";
 import prisma from "@/lib/prisma";
 
-interface EventDate {
-  id: string;
-  date: Date;
-  eventId: string;
-}
+// interface EventDate {
+//   id: string;
+//   date: Date;
+//   eventId: string;
+// }
 
-interface ParticipantDate {
-  id: string;
-  date: Date;
-  participantId: string;
-  eventDateId: string;
-  eventDate: EventDate;
-}
+// interface ParticipantDate {
+//   id: string;
+//   date: Date;
+//   participantId: string;
+//   eventDateId: string;
+//   eventDate: EventDate;
+// }
 
-interface Participant {
-  id: string;
-  name: string;
-  createdAt: Date;
-  updatedAt: Date;
-  eventId: string;
-  participantDates: ParticipantDate[];
-}
+// interface Participant {
+//   id: string;
+//   name: string;
+//   createdAt: Date;
+//   updatedAt: Date;
+//   eventId: string;
+//   participantDates: ParticipantDate[];
+// }
 
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: Date;
-  updatedAt: Date;
-  eventDates: EventDate[];
-  participants: Participant[];
-}
+// interface Event {
+//   id: string;
+//   title: string;
+//   description: string;
+//   createdAt: Date;
+//   updatedAt: Date;
+//   eventDates: EventDate[];
+//   participants: Participant[];
+// }
 
 export default async function EventPage({
   params,
