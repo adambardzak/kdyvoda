@@ -5,22 +5,25 @@ const prismaClientSingleton = () => {
   return new PrismaClient({
     log: [
       {
-        emit: 'event',
-        level: 'query',
-      },
-      {
         emit: 'stdout',
         level: 'error',
-      },
-      {
-        emit: 'stdout',
-        level: 'info',
       },
       {
         emit: 'stdout',
         level: 'warn',
       },
     ],
+    datasources: {
+      db: {
+        url: process.env.POSTGRES_PRISMA_URL,
+      },
+    },
+  }).$extends({
+    query: {
+      $allOperations({ query, args }) {
+        return query(args);
+      },
+    },
   });
 };
 
@@ -33,12 +36,5 @@ const prisma = globalThis.prisma ?? prismaClientSingleton();
 if (process.env.NODE_ENV !== "production") {
   globalThis.prisma = prisma;
 }
-
-// Log all queries
-prisma.$on('query', (e) => {
-  console.log('Query: ' + e.query);
-  console.log('Params: ' + e.params);
-  console.log('Duration: ' + e.duration + 'ms');
-});
 
 export default prisma;

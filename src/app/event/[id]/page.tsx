@@ -1,6 +1,8 @@
 import Link from "next/link";
 import ParticipantForm from "@/app/components/ParticipantForm";
 import prisma from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import { cache } from "react";
 
 // interface EventDate {
 //   id: string;
@@ -35,41 +37,40 @@ import prisma from "@/lib/prisma";
 //   participants: Participant[];
 // }
 
-export default async function EventPage(props: {
-  params: Promise<{ id: string }>;
-}) {
-  const params = await props.params;
-  const event = await prisma.event.findUnique({
-    where: { id: params.id },
-    include: {
-      eventDates: true,
-      participants: {
-        include: {
-          participantDates: {
-            include: {
-              eventDate: true,
+const getEvent = cache(async (id: string) => {
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id },
+      include: {
+        eventDates: true,
+        participants: {
+          include: {
+            participantDates: {
+              include: {
+                eventDate: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    });
+
+    if (!event) {
+      return null;
+    }
+
+    return event;
+  } catch (error) {
+    console.error("Error fetching event:", error);
+    return null;
+  }
+});
+
+export default async function EventPage({ params }: { params: { id: string } }) {
+  const event = await getEvent(params.id);
 
   if (!event) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="flex items-center text-red-700">
-          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <p>Event not found</p>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   const availableDates = event.eventDates.map((ed) => ed.date);
