@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import EventForm from './components/EventForm';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import EventForm from "./components/EventForm";
 
 export default function Home() {
   const router = useRouter();
@@ -14,27 +14,27 @@ export default function Home() {
     dates: Date[];
   }) => {
     try {
-      const response = await fetch('/api/events', {
-        method: 'POST',
+      const response = await fetch("/api/events", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create event');
+        throw new Error("Failed to create event");
       }
 
       const result = await response.json();
-      
+
       // Store management token in localStorage
       localStorage.setItem(`event_${result.event.id}`, result.managementToken);
-      
+
       // Redirect to the event page
       router.push(`/event/${result.event.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     }
   };
 
