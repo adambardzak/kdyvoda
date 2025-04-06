@@ -18,12 +18,6 @@ const prismaClientSingleton = () => {
         url: process.env.POSTGRES_PRISMA_URL,
       },
     },
-  }).$extends({
-    query: {
-      $allOperations({ query, args }) {
-        return query(args);
-      },
-    },
   });
 };
 
@@ -31,10 +25,15 @@ declare global {
   var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 
-const prisma = globalThis.prisma ?? prismaClientSingleton();
+let prisma: ReturnType<typeof prismaClientSingleton>;
 
-if (process.env.NODE_ENV !== "production") {
-  globalThis.prisma = prisma;
+if (process.env.NODE_ENV === 'production') {
+  prisma = prismaClientSingleton();
+} else {
+  if (!global.prisma) {
+    global.prisma = prismaClientSingleton();
+  }
+  prisma = global.prisma;
 }
 
 export default prisma;

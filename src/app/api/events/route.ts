@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { nanoid } from "nanoid";
+import { Prisma } from "@prisma/client";
 
 export async function POST(request: Request) {
   try {
@@ -32,46 +33,31 @@ export async function POST(request: Request) {
     const managementToken = nanoid();
 
     try {
-      // Use a transaction to ensure data consistency
-      const result = await prisma.$transaction(async (tx) => {
-        // Create the event
-        const event = await tx.event.create({
-          data: {
-            title,
-            description,
-            managementToken,
-          },
-        });
+      // Create event with dates in a single query
+      const eventData = Prisma.validator<Prisma.EventCreateInput>()({
+        title,
+        description,
+        managementToken,
+        eventDates: {
+          create: dates.map((date: string) => ({
+            date: new Date(date),
+          })),
+        },
+      });
 
-        // Create event dates
-        await Promise.all(
-          dates.map((dateStr) =>
-            tx.eventDate.create({
-              data: {
-                date: new Date(dateStr),
-                eventId: event.id,
-              },
-            })
-          )
-        );
-
-        // Get the complete event with dates
-        return tx.event.findUnique({
-          where: { id: event.id },
+      const event = await prisma.$transaction(async (tx) => {
+        return tx.event.create({
+          data: eventData,
           include: {
             eventDates: true,
           },
         });
       });
 
-      if (!result) {
-        throw new Error("Failed to create event");
-      }
-
-      console.log("Event created successfully:", result);
+      console.log("Event created successfully:", event);
 
       return NextResponse.json({
-        event: result,
+        event,
         managementToken,
       });
     } catch (dbError) {
