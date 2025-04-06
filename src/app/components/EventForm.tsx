@@ -12,6 +12,20 @@ export default function EventForm() {
   const [eventId, setEventId] = useState("");
   const router = useRouter();
 
+  // Generate dates for the next 12 months
+  const generateAvailableDates = () => {
+    const dates: Date[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    for (let i = 0; i < 365; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      dates.push(date);
+    }
+    return dates;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -19,6 +33,11 @@ export default function EventForm() {
     setSuccess(false);
 
     try {
+      if (!title || !description || selectedDates.length === 0) {
+        setError("Please fill in all required fields");
+        return;
+      }
+
       const response = await fetch("/api/events", {
         method: "POST",
         headers: {
@@ -36,20 +55,29 @@ export default function EventForm() {
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create event");
+      const responseText = await response.text();
+      let responseData;
+      
+      try {
+        responseData = responseText ? JSON.parse(responseText) : null;
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        throw new Error(`Failed to parse response: ${errorMessage}`);
       }
 
-      if (!data.event?.id) {
+      if (!response.ok) {
+        const errorMessage = responseData?.error || `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
+      }
+
+      if (!responseData?.event?.id) {
         throw new Error("No event ID returned from server");
       }
 
       // Store management token in localStorage
-      localStorage.setItem(`event_${data.event.id}`, data.managementToken);
+      localStorage.setItem(`event_${responseData.event.id}`, responseData.managementToken);
 
-      setEventId(data.event.id);
+      setEventId(responseData.event.id);
       setSuccess(true);
 
       // Clear form
@@ -59,9 +87,10 @@ export default function EventForm() {
 
       // Redirect to event page after 3 seconds
       setTimeout(() => {
-        router.push(`/event/${data.event.id}`);
+        router.push(`/event/${responseData.event.id}`);
       }, 3000);
     } catch (err) {
+      console.error("Error creating event:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsLoading(false);
@@ -97,9 +126,9 @@ export default function EventForm() {
 
   return (
     <div className="bg-white shadow-sm ring-1 ring-slate-200 rounded-lg p-4 sm:p-6">
-      {success && eventId && (
+      {success && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center mb-2">
+          <div className="flex items-center">
             <svg
               className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
               fill="currentColor"
@@ -111,34 +140,23 @@ export default function EventForm() {
                 clipRule="evenodd"
               />
             </svg>
-            <p className="text-green-700 font-medium">
-              Event created successfully!
-            </p>
+            <div>
+              <p className="text-green-700 font-medium">
+                Event created successfully!
+              </p>
+              <p className="text-green-600 text-sm mt-1">
+                Share this link with participants:{" "}
+                <a
+                  href={`/event/${eventId}`}
+                  className="underline hover:text-green-800"
+                >
+                  {typeof window !== "undefined"
+                    ? `${window.location.origin}/event/${eventId}`
+                    : `Loading...`}
+                </a>
+              </p>
+            </div>
           </div>
-          <p className="text-green-600 mb-2">
-            Share this link with your participants:
-          </p>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            <input
-              type="text"
-              readOnly
-              value={`${window.location.origin}/event/${eventId}`}
-              className="flex-1 p-2 bg-white border border-green-200 rounded text-sm text-slate-600"
-            />
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(
-                  `${window.location.origin}/event/${eventId}`
-                );
-              }}
-              className="px-3 py-2 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
-            >
-              Copy
-            </button>
-          </div>
-          <p className="mt-2 text-sm text-green-600">
-            Redirecting to event page in 3 seconds...
-          </p>
         </div>
       )}
 
@@ -174,7 +192,7 @@ export default function EventForm() {
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter a descriptive title"
+            placeholder="Enter event title"
             className="w-full rounded-md border-0 px-3 py-2 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 text-base sm:text-sm"
             required
           />
@@ -206,7 +224,7 @@ export default function EventForm() {
             <Calendar
               selectedDates={selectedDates}
               onDateSelect={handleDateSelect}
-              availableDates={[]}
+              availableDates={generateAvailableDates()}
             />
           </div>
           {selectedDates.length > 0 && (

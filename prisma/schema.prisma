@@ -14,39 +14,39 @@ datasource db {
 }
 
 model Event {
-  id          String       @id @default(cuid())
-  title       String
-  description String
-  eventDates  EventDate[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  participants Participant[]
-  managementToken String   @unique
+  id             String        @id @default(cuid())
+  title          String
+  description    String
+  managementToken String       @unique
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  eventDates     EventDate[]
+  participants   Participant[]
 }
 
 model EventDate {
-  id        String   @id @default(cuid())
-  date      DateTime
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id])
+  id               String            @id @default(cuid())
+  date             DateTime
+  event            Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId          String
   participantDates ParticipantDate[]
 }
 
 model Participant {
-  id        String   @id @default(cuid())
-  name      String
+  id               String            @id @default(cuid())
+  name             String
+  event            Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId          String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   participantDates ParticipantDate[]
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model ParticipantDate {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   date          DateTime
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
   participantId String
-  participant   Participant @relation(fields: [participantId], references: [id])
+  eventDate     EventDate   @relation(fields: [eventDateId], references: [id], onDelete: Cascade)
   eventDateId   String
-  eventDate     EventDate @relation(fields: [eventDateId], references: [id])
 }

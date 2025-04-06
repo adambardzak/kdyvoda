@@ -4,36 +4,87 @@ import { nanoid } from "nanoid";
 
 export async function POST(request: Request) {
   try {
-    const { title, description, dates } = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      console.error("Error parsing request body:", e);
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
+        { status: 400 }
+      );
+    }
+
+    console.log("Received request body:", body);
+    const { title, description, dates } = body;
+
+    if (!title || !description || !dates || !Array.isArray(dates)) {
+      console.error("Missing required fields:", { title, description, dates });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    console.log("Creating event with dates:", dates);
 
     // Create management token
     const managementToken = nanoid();
 
-    // Create the event
-    const event = await prisma.event.create({
-      data: {
-        title,
-        description,
-        managementToken,
-        eventDates: {
-          create: dates.map((date: string) => ({
-            date: new Date(date),
-          })),
-        },
-      },
-      include: {
-        eventDates: true,
-      },
-    });
+    try {
+      // Use a transaction to ensure data consistency
+      const result = await prisma.$transaction(async (tx) => {
+        // Create the event
+        const event = await tx.event.create({
+          data: {
+            title,
+            description,
+            managementToken,
+          },
+        });
 
-    return NextResponse.json({
-      event,
-      managementToken,
-    });
+        // Create event dates
+        await Promise.all(
+          dates.map((dateStr) =>
+            tx.eventDate.create({
+              data: {
+                date: new Date(dateStr),
+                eventId: event.id,
+              },
+            })
+          )
+        );
+
+        // Get the complete event with dates
+        return tx.event.findUnique({
+          where: { id: event.id },
+          include: {
+            eventDates: true,
+          },
+        });
+      });
+
+      if (!result) {
+        throw new Error("Failed to create event");
+      }
+
+      console.log("Event created successfully:", result);
+
+      return NextResponse.json({
+        event: result,
+        managementToken,
+      });
+    } catch (dbError) {
+      console.error("Database error:", dbError);
+      return NextResponse.json(
+        { error: "Database error: " + (dbError instanceof Error ? dbError.message : String(dbError)) },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("Error creating event:", error);
     return NextResponse.json(
-      { error: "Failed to create event" },
+      { error: "Failed to create event: " + (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     );
   }

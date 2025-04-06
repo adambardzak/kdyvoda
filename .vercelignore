@@ -1,0 +1,10 @@
+# Exclude unnecessary files
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+
+# Include the SQLite database
+!prisma/dev.db 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface CalendarProps {
   availableDates: Date[];
@@ -18,13 +18,10 @@ export default function Calendar({
   readOnly = false,
 }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [isSelecting, setIsSelecting] = useState(false);
-  const [localSelectedDates, setLocalSelectedDates] = useState<Date[]>(selectedDates);
+  const [dragStart, setDragStart] = useState<Date | null>(null);
+  const [dragEnd, setDragEnd] = useState<Date | null>(null);
 
-  useEffect(() => {
-    setLocalSelectedDates(selectedDates);
-  }, [selectedDates]);
-
+  // Helper functions
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -32,106 +29,135 @@ export default function Calendar({
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDay = firstDay.getDay();
-
     return { daysInMonth, startingDay };
   };
 
+  const isSameDay = (date1: Date, date2: Date) => {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  };
+
   const isDateAvailable = (date: Date) => {
-    return availableDates.some(
-      (availableDate) =>
-        availableDate.getFullYear() === date.getFullYear() &&
-        availableDate.getMonth() === date.getMonth() &&
-        availableDate.getDate() === date.getDate()
+    if (availableDates.length === 0) return true;
+    return availableDates.some((availableDate) =>
+      isSameDay(availableDate, date)
     );
   };
 
   const isDateSelected = (date: Date) => {
-    return localSelectedDates.some(
-      (selectedDate) =>
-        selectedDate.getFullYear() === date.getFullYear() &&
-        selectedDate.getMonth() === date.getMonth() &&
-        selectedDate.getDate() === date.getDate()
+    return selectedDates.some((selectedDate) =>
+      isSameDay(selectedDate, date)
     );
   };
 
+  const createDate = (year: number, month: number, day: number) => {
+    // Create date at UTC midnight to match parent component
+    const date = new Date(Date.UTC(year, month, day));
+    return date;
+  };
+
+  const isDateInRange = (date: Date) => {
+    if (!dragStart || !dragEnd) return false;
+    const dateTime = date.getTime();
+    const start = Math.min(dragStart.getTime(), dragEnd.getTime());
+    const end = Math.max(dragStart.getTime(), dragEnd.getTime());
+    return dateTime >= start && dateTime <= end;
+  };
+
+  // Click handler
   const handleDateClick = (date: Date) => {
     if (readOnly || !isDateAvailable(date)) return;
 
-    if (onDateSelect) {
-      onDateSelect(date);
-    } else {
-      setLocalSelectedDates((prev) => {
-        const isSelected = prev.some(
-          (d) =>
-            d.getFullYear() === date.getFullYear() &&
-            d.getMonth() === date.getMonth() &&
-            d.getDate() === date.getDate()
-        );
+    const normalizedDate = createDate(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
 
-        if (isSelected) {
-          return prev.filter(
-            (d) =>
-              d.getFullYear() !== date.getFullYear() ||
-              d.getMonth() !== date.getMonth() ||
-              d.getDate() !== date.getDate()
-          );
-        } else {
-          return [...prev, date];
-        }
-      });
+    if (onDateSelect) {
+      onDateSelect(normalizedDate);
     }
   };
 
-  const handleMouseDown = (date: Date) => {
+  // Drag handlers
+  const handleDragStart = (e: React.DragEvent, date: Date) => {
+    // Only prevent the default drag image
+    e.dataTransfer.setDragImage(new Image(), 0, 0);
     if (readOnly || !isDateAvailable(date)) return;
-    setIsSelecting(true);
-    handleDateClick(date);
+
+    const normalizedDate = createDate(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+    setDragStart(normalizedDate);
+    setDragEnd(normalizedDate);
   };
 
-  const handleMouseEnter = (date: Date) => {
-    if (readOnly || !isSelecting || !isDateAvailable(date)) return;
-    handleDateClick(date);
+  const handleDragEnter = (e: React.DragEvent, date: Date) => {
+    if (!dragStart || !isDateAvailable(date)) return;
+    const normalizedDate = createDate(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+    setDragEnd(normalizedDate);
   };
 
-  const handleMouseUp = () => {
-    setIsSelecting(false);
+  const handleDragEnd = (e: React.DragEvent) => {
+    if (dragStart && dragEnd) {
+      const dates: Date[] = [];
+      const start = Math.min(dragStart.getTime(), dragEnd.getTime());
+      const end = Math.max(dragStart.getTime(), dragEnd.getTime());
+      
+      const current = new Date(start);
+      while (current.getTime() <= end) {
+        if (isDateAvailable(current)) {
+          dates.push(new Date(current.getTime()));
+        }
+        current.setDate(current.getDate() + 1);
+      }
+
+      if (onDateSelect) {
+        dates.forEach(date => onDateSelect(date));
+      }
+    }
+    setDragStart(null);
+    setDragEnd(null);
   };
 
-  useEffect(() => {
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => window.removeEventListener("mouseup", handleMouseUp);
-  }, []);
-
-  const { daysInMonth, startingDay } = getDaysInMonth(currentDate);
-  const monthName = currentDate.toLocaleString("default", { month: "long" });
-  const year = currentDate.getFullYear();
-
-  const prevMonth = () => {
-    setCurrentDate(new Date(year, currentDate.getMonth() - 1, 1));
+  // Month navigation
+  const prevMonth = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
 
-  const nextMonth = () => {
-    setCurrentDate(new Date(year, currentDate.getMonth() + 1, 1));
+  const nextMonth = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
 
+  // Render calendar grid
   const renderDays = () => {
-    const days = [];
+    const { daysInMonth, startingDay } = getDaysInMonth(currentDate);
     const today = new Date();
+    const days = [];
 
-    // Add empty cells for days before the first day of the month
+    // Add empty cells for days before the first of the month
     for (let i = 0; i < startingDay; i++) {
       days.push(<div key={`empty-${i}`} className="h-10" />);
     }
 
     // Add cells for each day of the month
     for (let i = 1; i <= daysInMonth; i++) {
-      const date = new Date(year, currentDate.getMonth(), i);
+      const date = createDate(currentDate.getFullYear(), currentDate.getMonth(), i);
       const isAvailable = isDateAvailable(date);
       const isSelected = isDateSelected(date);
-      const isToday =
-        date.getDate() === today.getDate() &&
-        date.getMonth() === today.getMonth() &&
-        date.getFullYear() === today.getFullYear();
+      const isInRange = isDateInRange(date);
+      const isToday = isSameDay(date, today);
 
       const dateStr = date.toISOString().split("T")[0];
       const availability = dateAvailability?.get(dateStr);
@@ -139,23 +165,27 @@ export default function Calendar({
       days.push(
         <div
           key={i}
-          className={`h-10 flex items-center justify-center relative ${
+          className={`h-10 flex items-center justify-center relative select-none ${
             isAvailable
               ? "cursor-pointer hover:bg-slate-100"
               : "cursor-not-allowed opacity-50"
           } ${
-            isSelected
+            isSelected || isInRange
               ? "bg-green-100 hover:bg-green-200"
               : isToday
               ? "bg-blue-50"
               : ""
           }`}
-          onMouseDown={() => handleMouseDown(date)}
-          onMouseEnter={() => handleMouseEnter(date)}
+          onClick={() => handleDateClick(date)}
+          draggable={isAvailable && !readOnly}
+          onDragStart={(e) => handleDragStart(e, date)}
+          onDragEnter={(e) => handleDragEnter(e, date)}
+          onDragEnd={handleDragEnd}
+          onDragOver={(e) => e.preventDefault()} // Still need this to allow drop
         >
           <span
             className={`text-sm ${
-              isSelected
+              isSelected || isInRange
                 ? "font-semibold text-green-700"
                 : isToday
                 ? "font-semibold text-blue-700"
@@ -209,7 +239,7 @@ export default function Calendar({
           </svg>
         </button>
         <h2 className="text-lg font-semibold text-slate-900">
-          {monthName} {year}
+          {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
         </h2>
         <button
           onClick={nextMonth}
