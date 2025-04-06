@@ -35,9 +35,13 @@ import prisma from "@/lib/prisma";
 //   participants: Participant[];
 // }
 
-export default async function EventPage({ props }: { props: { id: string } }) {
+export default async function EventPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const event = await prisma.event.findUnique({
-    where: { id: props.id },
+    where: { id: params.id },
     include: {
       eventDates: true,
       participants: {
