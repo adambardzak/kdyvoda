@@ -1,39 +1,25 @@
 /* eslint-disable */
 import { PrismaClient } from "@prisma/client";
 
-const prismaClientSingleton = () => {
-  return new PrismaClient({
-    log: [
-      {
-        emit: 'stdout',
-        level: 'error',
-      },
-      {
-        emit: 'stdout',
-        level: 'warn',
-      },
-    ],
-    datasources: {
-      db: {
-        url: process.env.POSTGRES_PRISMA_URL,
-      },
-    },
-  });
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
 };
 
-declare global {
-  var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
-}
+const prisma = globalForPrisma.prisma ?? new PrismaClient({
+  log: [
+    {
+      emit: 'stdout',
+      level: 'error',
+    },
+    {
+      emit: 'stdout',
+      level: 'warn',
+    },
+  ],
+});
 
-let prisma: ReturnType<typeof prismaClientSingleton>;
-
-if (process.env.NODE_ENV === 'production') {
-  prisma = prismaClientSingleton();
-} else {
-  if (!global.prisma) {
-    global.prisma = prismaClientSingleton();
-  }
-  prisma = global.prisma;
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
 }
 
 export default prisma;

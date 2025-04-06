@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { nanoid } from "nanoid";
-import { Prisma } from "@prisma/client";
 
 export async function POST(request: Request) {
   try {
@@ -33,31 +32,43 @@ export async function POST(request: Request) {
     const managementToken = nanoid();
 
     try {
-      // Create event with dates in a single query
-      const eventData = Prisma.validator<Prisma.EventCreateInput>()({
-        title,
-        description,
-        managementToken,
-        eventDates: {
-          create: dates.map((date: string) => ({
-            date: new Date(date),
-          })),
+      // First create the event
+      const event = await prisma.event.create({
+        data: {
+          title,
+          description,
+          managementToken,
         },
       });
 
-      const event = await prisma.$transaction(async (tx) => {
-        return tx.event.create({
-          data: eventData,
-          include: {
-            eventDates: true,
-          },
+      // Then create the dates in batches of 5
+      const batchSize = 5;
+      for (let i = 0; i < dates.length; i += batchSize) {
+        const batch = dates.slice(i, i + batchSize);
+        await prisma.eventDate.createMany({
+          data: batch.map(date => ({
+            date: new Date(date),
+            eventId: event.id,
+          })),
         });
+      }
+
+      // Fetch the complete event with dates
+      const completeEvent = await prisma.event.findUnique({
+        where: { id: event.id },
+        include: {
+          eventDates: true,
+        },
       });
 
-      console.log("Event created successfully:", event);
+      if (!completeEvent) {
+        throw new Error("Failed to fetch created event");
+      }
+
+      console.log("Event created successfully:", completeEvent);
 
       return NextResponse.json({
-        event,
+        event: completeEvent,
         managementToken,
       });
     } catch (dbError) {
