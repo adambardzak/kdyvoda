@@ -29,13 +29,12 @@ interface Event {
   participants: Participant[];
 }
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-}
+type Props = {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+};
 
-export default function EventPage({ params }: PageProps) {
+export default function EventPage({ params }: Props) {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
