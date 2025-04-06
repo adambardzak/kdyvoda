@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import Background from "@/components/Background";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full bg-slate-50">
       <body className={`${inter.className} h-full`}>
+        <Background />
         <div className="min-h-full">
           <nav className="bg-white shadow-sm">
             <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">

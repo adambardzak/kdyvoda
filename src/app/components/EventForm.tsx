@@ -17,7 +17,7 @@ export default function EventForm() {
     const dates: Date[] = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     for (let i = 0; i < 365; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
@@ -57,16 +57,18 @@ export default function EventForm() {
 
       const responseText = await response.text();
       let responseData;
-      
+
       try {
         responseData = responseText ? JSON.parse(responseText) : null;
       } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error";
         throw new Error(`Failed to parse response: ${errorMessage}`);
       }
 
       if (!response.ok) {
-        const errorMessage = responseData?.error || `HTTP error! status: ${response.status}`;
+        const errorMessage =
+          responseData?.error || `HTTP error! status: ${response.status}`;
         throw new Error(errorMessage);
       }
 
@@ -75,7 +77,10 @@ export default function EventForm() {
       }
 
       // Store management token in localStorage
-      localStorage.setItem(`event_${responseData.event.id}`, responseData.managementToken);
+      localStorage.setItem(
+        `event_${responseData.event.id}`,
+        responseData.managementToken
+      );
 
       setEventId(responseData.event.id);
       setSuccess(true);
@@ -125,7 +130,7 @@ export default function EventForm() {
   };
 
   return (
-    <div className="bg-white shadow-sm ring-1 ring-slate-200 rounded-lg p-4 sm:p-6">
+    <div className="shadow-sm ring-1  rounded-lg p-4 sm:p-6">
       {success && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-center">
@@ -232,7 +237,7 @@ export default function EventForm() {
               <h4 className="text-sm font-medium text-slate-700 mb-3">
                 Selected Dates:
               </h4>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 bg-white p-2 rounded-md">
                 {selectedDates.map((date, index) => (
                   <span
                     key={index}

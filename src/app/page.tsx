@@ -7,7 +7,7 @@ export default function Home() {
   const [showForm, setShowForm] = useState(false);
 
   return (
-    <main className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">
