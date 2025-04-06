@@ -7,8 +7,8 @@ import Background from "@/components/Background";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "KdyVoda - Event Planning Made Easy",
-  description: "Schedule your water rafting events with ease",
+  title: "KdyVoda - Vodácký Plánovač Eventu",
+  description: "Naplánuj si vodáckou akci s kámošema bez streamů",
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full bg-slate-50">
+    <html lang="cs" className="h-full bg-slate-50">
       <body className={`${inter.className} h-full`}>
         <Background />
         <div className="min-h-full">
@@ -45,7 +45,7 @@ export default function RootLayout({
           <footer className="bg-white mt-auto border-t border-slate-200">
             <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
               <p className="text-center text-sm text-slate-500">
-                &copy; {new Date().getFullYear()} KdyVoda. All rights reserved.
+                &copy; {new Date().getFullYear()} KdyVoda. Všechna práva v klídku.
               </p>
             </div>
           </footer>

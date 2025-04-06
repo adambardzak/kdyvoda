@@ -147,17 +147,17 @@ export default function EventForm() {
             </svg>
             <div>
               <p className="text-green-700 font-medium">
-                Event created successfully!
+                Event je ready!
               </p>
               <p className="text-green-600 text-sm mt-1">
-                Share this link with participants:{" "}
+                Pošli tenhle link kámošům:{" "}
                 <a
                   href={`/event/${eventId}`}
                   className="underline hover:text-green-800"
                 >
                   {typeof window !== "undefined"
                     ? `${window.location.origin}/event/${eventId}`
-                    : `Loading...`}
+                    : `Načítám...`}
                 </a>
               </p>
             </div>
@@ -190,14 +190,14 @@ export default function EventForm() {
             htmlFor="title"
             className="block text-sm font-medium text-slate-900 mb-2"
           >
-            Event Title
+            Název Eventu
           </label>
           <input
             type="text"
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter event title"
+            placeholder="Zadej název eventu"
             className="w-full rounded-md border-0 px-3 py-2 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 text-base sm:text-sm"
             required
           />
@@ -208,13 +208,13 @@ export default function EventForm() {
             htmlFor="description"
             className="block text-sm font-medium text-slate-900 mb-2"
           >
-            Event Description
+            Popis Eventu
           </label>
           <textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Provide details about the event..."
+            placeholder="Napiš něco o eventu..."
             rows={4}
             className="w-full rounded-md border-0 px-3 py-2 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 text-base sm:text-sm"
             required
@@ -223,7 +223,7 @@ export default function EventForm() {
 
         <div>
           <label className="block text-sm font-medium text-slate-900 mb-2">
-            Select Available Dates
+            Vyber Možný Termíny
           </label>
           <div className="rounded-lg border border-slate-200 bg-white p-3 sm:p-6">
             <Calendar
@@ -235,7 +235,7 @@ export default function EventForm() {
           {selectedDates.length > 0 && (
             <div className="mt-4">
               <h4 className="text-sm font-medium text-slate-700 mb-3">
-                Selected Dates:
+                Vybraný termíny:
               </h4>
               <div className="flex flex-wrap gap-2 bg-white p-2 rounded-md">
                 {selectedDates.map((date, index) => (
@@ -243,7 +243,7 @@ export default function EventForm() {
                     key={index}
                     className="inline-flex items-center px-2.5 py-1.5 rounded-md text-sm font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10"
                   >
-                    {date.toLocaleDateString(undefined, {
+                    {date.toLocaleDateString('cs-CZ', {
                       weekday: "short",
                       month: "short",
                       day: "numeric",
@@ -262,7 +262,7 @@ export default function EventForm() {
           }
           className="w-full flex justify-center rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
         >
-          {isLoading ? "Creating..." : "Create Event"}
+          {isLoading ? "Vytvářím..." : "Vytvořit Event"}
         </button>
       </form>
     </div>

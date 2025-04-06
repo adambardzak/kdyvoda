@@ -262,7 +262,7 @@ export default function Calendar({
         </button>
       </div>
       <div className="grid grid-cols-7 gap-1">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+        {["Ne", "Po", "Út", "St", "Čt", "Pá", "So"].map((day) => (
           <div
             key={day}
             className="text-center text-sm font-medium text-slate-500"

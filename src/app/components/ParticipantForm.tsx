@@ -121,7 +121,7 @@ export default function ParticipantForm({
               />
             </svg>
             <p className="text-green-700 font-medium">
-              Response submitted successfully!
+              Tvoje odpověď je v pohodě!
             </p>
           </div>
         </div>
@@ -152,14 +152,14 @@ export default function ParticipantForm({
             htmlFor="name"
             className="block text-sm font-medium text-slate-900 mb-2"
           >
-            Your Name
+            Tvoje Jméno
           </label>
           <input
             type="text"
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Enter your full name"
+            placeholder="Napiš jak ti máme říkat"
             className="w-full rounded-md border-0 px-3 py-2 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 text-base sm:text-sm"
             required
           />
@@ -167,20 +167,20 @@ export default function ParticipantForm({
 
         <div>
           <label className="block text-sm font-medium text-slate-900 mb-2">
-            Select Available Dates
+            Vyber Kdy Můžeš Dorazit
           </label>
           <div className="rounded-lg border border-slate-200 bg-white p-3 sm:p-6">
             <div className="mb-4 flex flex-wrap gap-4">
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 bg-blue-100 rounded-sm border border-blue-200"></div>
                 <span className="text-sm text-slate-600">
-                  Available Event Dates
+                  Možný Termíny Eventu
                 </span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 bg-green-100 rounded-sm border border-green-200"></div>
                 <span className="text-sm text-slate-600">
-                  Your Selected Dates
+                  Tvoje Vybraný Termíny
                 </span>
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function ParticipantForm({
           {selectedDates.length > 0 && (
             <div className="mt-4">
               <h4 className="text-sm font-medium text-slate-700 mb-3">
-                Your Selected Dates:
+                Tvoje Vybraný Termíny:
               </h4>
               <div className="flex flex-wrap gap-2">
                 {selectedDates.map((date, index) => (
@@ -201,7 +201,7 @@ export default function ParticipantForm({
                     key={index}
                     className="inline-flex items-center px-2.5 py-1.5 rounded-md text-sm font-medium bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20"
                   >
-                    {date.toLocaleDateString(undefined, {
+                    {date.toLocaleDateString('cs-CZ', {
                       weekday: "short",
                       month: "short",
                       day: "numeric",
@@ -218,7 +218,7 @@ export default function ParticipantForm({
           disabled={isLoading || !name || selectedDates.length === 0}
           className="w-full flex justify-center rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
         >
-          {isLoading ? "Submitting..." : "Submit Response"}
+          {isLoading ? "Posílám..." : "Poslat Odpověď"}
         </button>
       </form>
     </div>
