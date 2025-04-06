@@ -188,7 +188,6 @@ export default function ParticipantForm({
               availableDates={availableDates}
               selectedDates={selectedDates}
               onDateSelect={handleDateSelect}
-              // selectable={true}
             />
           </div>
           {selectedDates.length > 0 && (
