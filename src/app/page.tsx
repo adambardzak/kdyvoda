@@ -1,53 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import EventForm from "./components/EventForm";
 
 export default function Home() {
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = async (data: {
-    title: string;
-    description: string;
-    dates: Date[];
-  }) => {
-    try {
-      const response = await fetch("/api/events", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create event");
-      }
-
-      const result = await response.json();
-
-      // Store management token in localStorage
-      localStorage.setItem(`event_${result.event.id}`, result.managementToken);
-
-      // Redirect to the event page
-      router.push(`/event/${result.event.id}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    }
-  };
+  const [showForm, setShowForm] = useState(false);
 
   return (
-    <main className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8">Create a New Event</h1>
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+    <main className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+            Find the Perfect Date
+          </h1>
+          <p className="mt-3 text-lg text-slate-600">
+            Create an event and let your participants choose their available dates
+          </p>
+        </div>
+
+        {!showForm ? (
+          <div className="mt-12 text-center">
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Create New Event
+            </button>
+          </div>
+        ) : (
+          <div className="mt-12">
+            <EventForm />
           </div>
         )}
-        <EventForm onSubmit={handleSubmit} />
       </div>
     </main>
   );
