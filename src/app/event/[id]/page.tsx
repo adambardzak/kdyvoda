@@ -35,11 +35,10 @@ import prisma from "@/lib/prisma";
 //   participants: Participant[];
 // }
 
-export default async function EventPage({
-  params,
-}: {
-  params: { id: string };
+export default async function EventPage(props: {
+  params: Promise<{ id: string }>;
 }) {
+  const params = await props.params;
   const event = await prisma.event.findUnique({
     where: { id: params.id },
     include: {
