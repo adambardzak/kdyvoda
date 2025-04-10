@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import { cache } from 'react';
 import getPrismaClient from '@/lib/prisma';
 import Link from 'next/link';
 import ParticipantForm from '@/app/components/ParticipantForm';
@@ -27,45 +26,6 @@ interface Event {
   eventDates: EventDate[];
   participants: Participant[];
 }
-
-const getEvent = cache(async (id: string) => {
-  let prisma;
-  try {
-    prisma = getPrismaClient();
-    if (!prisma) {
-      throw new Error("Database connection failed");
-    }
-
-    const event = await prisma.event.findUnique({
-      where: { id },
-      include: {
-        eventDates: true,
-        participants: {
-          include: {
-            participantDates: {
-              include: {
-                eventDate: true
-              }
-            }
-          }
-        }
-      },
-    });
-
-    if (!event) {
-      return null;
-    }
-
-    return event;
-  } catch (error) {
-    console.error('Error fetching event:', error);
-    throw error;
-  } finally {
-    if (prisma) {
-      await prisma.$disconnect();
-    }
-  }
-});
 
 function EventPage({ event }: { event: Event }) {
   const availableDates = event.eventDates.map((ed) => ed.date);
@@ -140,11 +100,41 @@ function EventPage({ event }: { event: Event }) {
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
-  const event = await getEvent(params.id);
+  let prisma;
+  
+  try {
+    prisma = getPrismaClient();
+    if (!prisma) {
+      throw new Error("Database connection failed");
+    }
 
-  if (!event) {
-    notFound();
+    const event = await prisma.event.findUnique({
+      where: { id: params.id },
+      include: {
+        eventDates: true,
+        participants: {
+          include: {
+            participantDates: {
+              include: {
+                eventDate: true
+              }
+            }
+          }
+        }
+      },
+    });
+
+    if (!event) {
+      notFound();
+    }
+
+    return <EventPage event={event} />;
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    throw error;
+  } finally {
+    if (prisma) {
+      await prisma.$disconnect();
+    }
   }
-
-  return <EventPage event={event} />;
 }
