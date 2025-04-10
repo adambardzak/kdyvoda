@@ -1,14 +1,22 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import getPrismaClient from '@/lib/prisma';
 import { EventDate } from '@prisma/client';
 
 export async function POST(request: Request) {
+  const prisma = getPrismaClient();
+  if (!prisma) {
+    return NextResponse.json(
+      { error: "Database connection failed" },
+      { status: 500 }
+    );
+  }
+
   try {
     const { name, eventId, dates } = await request.json();
 
     if (!name || !eventId || !dates || !Array.isArray(dates)) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -25,7 +33,7 @@ export async function POST(request: Request) {
 
     if (eventDates.length !== dates.length) {
       return NextResponse.json(
-        { error: 'Some selected dates are not available for this event' },
+        { error: "Some selected dates are not available for this event" },
         { status: 400 }
       );
     }
@@ -64,26 +72,38 @@ export async function POST(request: Request) {
     });
 
     if (!participant) {
-      throw new Error('Failed to create participant');
+      throw new Error("Failed to create participant");
     }
 
     return NextResponse.json(participant);
   } catch (error) {
-    console.error('Error creating participant:', error);
+    console.error("Error creating participant:", error);
     return NextResponse.json(
-      { error: 'Failed to create participant' },
+      { error: "Failed to create participant" },
       { status: 500 }
     );
+  } finally {
+    if (process.env.NODE_ENV === 'production') {
+      await prisma.$disconnect();
+    }
   }
 }
 
 export async function PUT(request: Request) {
+  const prisma = getPrismaClient();
+  if (!prisma) {
+    return NextResponse.json(
+      { error: "Database connection failed" },
+      { status: 500 }
+    );
+  }
+
   try {
     const { id, availableDates } = await request.json();
 
     if (!id || !availableDates || !Array.isArray(availableDates)) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -122,10 +142,14 @@ export async function PUT(request: Request) {
 
     return NextResponse.json(participant);
   } catch (error) {
-    console.error('Error updating participant:', error);
+    console.error("Error updating participant:", error);
     return NextResponse.json(
-      { error: 'Failed to update participant' },
+      { error: "Failed to update participant" },
       { status: 500 }
     );
+  } finally {
+    if (process.env.NODE_ENV === 'production') {
+      await prisma.$disconnect();
+    }
   }
 } 
