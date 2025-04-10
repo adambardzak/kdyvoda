@@ -6,6 +6,13 @@ export async function POST(request: Request) {
   try {
     const { name, eventId, dates } = await request.json();
 
+    if (!name || !eventId || !dates || !Array.isArray(dates)) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
     // First, verify that all the dates exist for this event
     const eventDates = await prisma.eventDate.findMany({
       where: {
@@ -23,30 +30,42 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create the participant with the verified dates
-    const participant = await prisma.participant.create({
-      data: {
-        name,
-        event: {
-          connect: {
-            id: eventId
-          }
-        },
-        participantDates: {
-          create: eventDates.map((eventDate: EventDate) => ({
-            date: eventDate.date,
-            eventDateId: eventDate.id
-          }))
-        }
-      },
-      include: {
-        participantDates: {
-          include: {
-            eventDate: true
+    // Create the participant with the verified dates in a transaction
+    const participant = await prisma.$transaction(async (tx) => {
+      const newParticipant = await tx.participant.create({
+        data: {
+          name,
+          event: {
+            connect: {
+              id: eventId
+            }
           }
         }
-      }
+      });
+
+      await tx.participantDate.createMany({
+        data: eventDates.map((eventDate: EventDate) => ({
+          date: eventDate.date,
+          eventDateId: eventDate.id,
+          participantId: newParticipant.id
+        }))
+      });
+
+      return tx.participant.findUnique({
+        where: { id: newParticipant.id },
+        include: {
+          participantDates: {
+            include: {
+              eventDate: true
+            }
+          }
+        }
+      });
     });
+
+    if (!participant) {
+      throw new Error('Failed to create participant');
+    }
 
     return NextResponse.json(participant);
   } catch (error) {
@@ -62,33 +81,43 @@ export async function PUT(request: Request) {
   try {
     const { id, availableDates } = await request.json();
 
-    // Delete existing participant dates
-    await prisma.participantDate.deleteMany({
-      where: {
-        participantId: id,
-      },
-    });
+    if (!id || !availableDates || !Array.isArray(availableDates)) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
 
-    // Create new participant dates
-    const participant = await prisma.participant.update({
-      where: {
-        id,
-      },
-      data: {
-        participantDates: {
-          create: availableDates.map((date: string) => ({
-            date: new Date(date),
-            eventDate: {
-              connect: {
-                id: date,
-              },
-            },
-          })),
+    // Update participant dates in a transaction
+    const participant = await prisma.$transaction(async (tx) => {
+      // Delete existing participant dates
+      await tx.participantDate.deleteMany({
+        where: {
+          participantId: id,
         },
-      },
-      include: {
-        participantDates: true,
-      },
+      });
+
+      // Create new participant dates
+      return tx.participant.update({
+        where: {
+          id,
+        },
+        data: {
+          participantDates: {
+            create: availableDates.map((date: string) => ({
+              date: new Date(date),
+              eventDate: {
+                connect: {
+                  id: date,
+                },
+              },
+            })),
+          },
+        },
+        include: {
+          participantDates: true,
+        },
+      });
     });
 
     return NextResponse.json(participant);

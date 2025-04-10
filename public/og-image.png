@@ -1,1 +1,66 @@
- 
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <rect width="1200" height="630" fill="url(#gradient)"/>
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#87CEEB"/>
+      <stop offset="100%" stop-color="#1E90FF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sun -->
+  <circle cx="200" cy="200" r="100" fill="#FFD700" stroke="#FFA500" stroke-width="8"/>
+  <g>
+    <path d="M200,100 Q210,130 200,140 Q190,130 200,100" stroke="#FFA500" stroke-width="6" fill="#FFD700"/>
+    <path d="M200,100 Q210,130 200,140 Q190,130 200,100" stroke="#FFA500" stroke-width="6" fill="#FFD700" transform="rotate(30 200 200)"/>
+    <path d="M200,100 Q210,130 200,140 Q190,130 200,100" stroke="#FFA500" stroke-width="6" fill="#FFD700" transform="rotate(60 200 200)"/>
+    <path d="M200,100 Q210,130 200,140 Q190,130 200,100" stroke="#FFA500" stroke-width="6" fill="#FFD700" transform="rotate(90 200 200)"/>
+    <path d="M200,100 Q210,130 200,140 Q190,130 200,100" stroke="#FFA500" stroke-width="6" fill="#FFD700" transform="rotate(120 200 200)"/>
+    <path d="M200,100 Q210,130 200,140 Q190,130 200,100" stroke="#FFA500" stroke-width="6" fill="#FFD700" transform="rotate(150 200 200)"/>
+    <path d="M200,100 Q210,130 200,140 Q190,130 200,100" stroke="#FFA500" stroke-width="6" fill="#FFD700" transform="rotate(180 200 200)"/>
+    <path d="M200,100 Q210,130 200,140 Q190,130 200,100" stroke="#FFA500" stroke-width="6" fill="#FFD700" transform="rotate(210 200 200)"/>
+    <path d="M200,100 Q210,130 200,140 Q190,130 200,100" stroke="#FFA500" stroke-width="6" fill="#FFD700" transform="rotate(240 200 200)"/>
+    <path d="M200,100 Q210,130 200,140 Q190,130 200,100" stroke="#FFA500" stroke-width="6" fill="#FFD700" transform="rotate(270 200 200)"/>
+    <path d="M200,100 Q210,130 200,140 Q190,130 200,100" stroke="#FFA500" stroke-width="6" fill="#FFD700" transform="rotate(300 200 200)"/>
+    <path d="M200,100 Q210,130 200,140 Q190,130 200,100" stroke="#FFA500" stroke-width="6" fill="#FFD700" transform="rotate(330 200 200)"/>
+  </g>
+  <path d="M170,180 Q200,200 230,180" stroke="#000" stroke-width="4" fill="none"/>
+  <circle cx="180" cy="170" r="8" fill="#000"/>
+  <circle cx="220" cy="170" r="8" fill="#000"/>
+
+  <!-- River -->
+  <path d="M0,400 Q300,350 600,400 Q900,450 1200,400" fill="#4A90E2" stroke="#3478C5" stroke-width="20"/>
+  <path d="M0,450 Q300,400 600,450 Q900,500 1200,450" fill="#3478C5" stroke="#1E4B8F" stroke-width="20" opacity="0.5"/>
+
+  <!-- Boats -->
+  <g transform="translate(400,350)">
+    <path d="M20,50 C20,50 40,60 100,60 C160,60 180,50 180,50 L170,40 C170,40 140,30 100,30 C60,30 30,40 30,40 Z" fill="#8B4513" stroke="#654321" stroke-width="4"/>
+    <circle cx="100" cy="40" r="10" fill="#FDB797" stroke="#000" stroke-width="2"/>
+    <path d="M90,30 L110,30 L100,20 Z" fill="#333"/>
+    <path d="M88,30 L112,30" stroke="#333" stroke-width="4"/>
+    <circle cx="97" cy="38" r="2" fill="#000"/>
+    <circle cx="103" cy="38" r="2" fill="#000"/>
+    <path d="M97,42 Q100,41 103,42" stroke="#000" stroke-width="1"/>
+  </g>
+
+  <g transform="translate(600,360)">
+    <path d="M20,50 C20,50 40,60 100,60 C160,60 180,50 180,50 L170,40 C170,40 140,30 100,30 C60,30 30,40 30,40 Z" fill="#8B4513" stroke="#654321" stroke-width="4"/>
+    <circle cx="100" cy="40" r="10" fill="#FDB797" stroke="#000" stroke-width="2"/>
+    <path d="M90,30 L110,30 L100,20 Z" fill="#333"/>
+    <path d="M88,30 L112,30" stroke="#333" stroke-width="4"/>
+    <path d="M95,38 L105,38" stroke="#000" stroke-width="2"/>
+    <path d="M97,42 Q100,41 103,42" stroke="#000" stroke-width="1"/>
+  </g>
+
+  <!-- Text -->
+  <text x="600" y="300" font-family="Arial" font-size="72" font-weight="bold" text-anchor="middle" fill="#FFFFFF">
+    KdyVoda
+  </text>
+  <text x="600" y="380" font-family="Arial" font-size="36" text-anchor="middle" fill="#FFFFFF">
+    Vodácký Plánovač Eventu
+  </text>
+  <text x="600" y="450" font-family="Arial" font-size="24" text-anchor="middle" fill="#FFFFFF">
+    Naplánuj si vodáckou akci s kámošema bez streamů
+  </text>
+</svg> 
