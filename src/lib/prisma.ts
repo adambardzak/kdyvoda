@@ -27,8 +27,8 @@ export default function getPrismaClient(): PrismaClient {
   if (process.env.NODE_ENV === 'production') {
     const client = createPrismaClient();
     // Ensure we disconnect after each request
-    process.on('beforeExit', async () => {
-      await client.$disconnect();
+    client.$connect().then(() => {
+      client.$disconnect();
     });
     return client;
   }
