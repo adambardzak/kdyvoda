@@ -16,13 +16,6 @@ const prisma = global.prisma || new PrismaClient({
 
 // Add middleware to handle prepared statements
 (prisma as any).$use(async (params: any, next: any) => {
-  // Add a unique identifier to each query to prevent prepared statement conflicts
-  const queryId = Math.random().toString(36).substring(7);
-  params.args = {
-    ...params.args,
-    queryId
-  };
-  
   try {
     return await next(params);
   } catch (error: any) {
