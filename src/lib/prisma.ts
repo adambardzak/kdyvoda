@@ -25,7 +25,12 @@ if (process.env.NODE_ENV !== 'production') {
 // Export a function that creates a new client for each request
 export default function getPrismaClient(): PrismaClient {
   if (process.env.NODE_ENV === 'production') {
-    return createPrismaClient();
+    const client = createPrismaClient();
+    // Ensure we disconnect after each request
+    client.$connect().then(() => {
+      client.$disconnect();
+    });
+    return client;
   }
   return global.prisma!;
 }
