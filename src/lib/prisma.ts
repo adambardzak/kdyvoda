@@ -9,7 +9,7 @@ const prisma = global.prisma || new PrismaClient({
   log: ['query', 'error', 'warn'],
   datasources: {
     db: {
-      url: process.env.POSTGRES_PRISMA_URL
+      url: process.env.POSTGRES_PRISMA_URL + '?pgbouncer=true&connection_limit=1&pool_timeout=0&statement_timeout=0'
     }
   }
 });
@@ -26,7 +26,7 @@ const prisma = global.prisma || new PrismaClient({
         log: ['query', 'error', 'warn'],
         datasources: {
           db: {
-            url: process.env.POSTGRES_PRISMA_URL
+            url: process.env.POSTGRES_PRISMA_URL + '?pgbouncer=true&connection_limit=1&pool_timeout=0&statement_timeout=0'
           }
         }
       });
