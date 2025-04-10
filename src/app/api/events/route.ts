@@ -3,15 +3,16 @@ import getPrismaClient from "@/lib/prisma";
 import { nanoid } from "nanoid";
 
 export async function POST(request: Request) {
-  const prisma = getPrismaClient();
-  if (!prisma) {
-    return NextResponse.json(
-      { error: "Database connection failed" },
-      { status: 500 }
-    );
-  }
-  
+  let prisma;
   try {
+    prisma = getPrismaClient();
+    if (!prisma) {
+      return NextResponse.json(
+        { error: "Database connection failed" },
+        { status: 500 }
+      );
+    }
+    
     const { title, description, dates } = await request.json();
 
     if (!title || !description || !dates || !Array.isArray(dates)) {
@@ -21,47 +22,60 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create the event with a management token
-    const event = await prisma.event.create({
-      data: {
-        title,
-        description,
-        managementToken: nanoid(20),
-        eventDates: {
-          create: dates.map((date: string) => ({
-            date: new Date(date)
-          }))
+    // Create the event with a management token in a transaction
+    const event = await prisma.$transaction(async (tx) => {
+      const newEvent = await tx.event.create({
+        data: {
+          title,
+          description,
+          managementToken: nanoid(20),
         }
-      },
-      include: {
-        eventDates: true
-      }
+      });
+
+      await tx.eventDate.createMany({
+        data: dates.map((date: string) => ({
+          date: new Date(date),
+          eventId: newEvent.id
+        }))
+      });
+
+      return tx.event.findUnique({
+        where: { id: newEvent.id },
+        include: {
+          eventDates: true
+        }
+      });
     });
+
+    if (!event) {
+      throw new Error("Failed to create event");
+    }
 
     return NextResponse.json({ event });
   } catch (error) {
     console.error("Error creating event:", error);
     return NextResponse.json(
-      { error: "Failed to create event" },
+      { error: error instanceof Error ? error.message : "Failed to create event" },
       { status: 500 }
     );
   } finally {
-    if (process.env.NODE_ENV === 'production') {
+    if (prisma) {
       await prisma.$disconnect();
     }
   }
 }
 
 export async function GET(request: Request) {
-  const prisma = getPrismaClient();
-  if (!prisma) {
-    return NextResponse.json(
-      { error: "Database connection failed" },
-      { status: 500 }
-    );
-  }
-
+  let prisma;
   try {
+    prisma = getPrismaClient();
+    if (!prisma) {
+      return NextResponse.json(
+        { error: "Database connection failed" },
+        { status: 500 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     const managementToken = searchParams.get("managementToken");
@@ -112,11 +126,11 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Error fetching event:", error);
     return NextResponse.json(
-      { error: "Failed to fetch event" },
+      { error: error instanceof Error ? error.message : "Failed to fetch event" },
       { status: 500 }
     );
   } finally {
-    if (process.env.NODE_ENV === 'production') {
+    if (prisma) {
       await prisma.$disconnect();
     }
   }
