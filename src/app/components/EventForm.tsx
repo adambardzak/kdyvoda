@@ -55,34 +55,24 @@ export default function EventForm() {
         }),
       });
 
-      const responseText = await response.text();
-      let responseData;
-
-      try {
-        responseData = responseText ? JSON.parse(responseText) : null;
-      } catch (err: unknown) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Unknown error";
-        throw new Error(`Failed to parse response: ${errorMessage}`);
-      }
-
       if (!response.ok) {
-        const errorMessage =
-          responseData?.error || `HTTP error! status: ${response.status}`;
-        throw new Error(errorMessage);
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      if (!responseData?.event?.id) {
+      const data = await response.json();
+
+      if (!data?.event?.id) {
         throw new Error("No event ID returned from server");
       }
 
       // Store management token in localStorage
       localStorage.setItem(
-        `event_${responseData.event.id}`,
-        responseData.managementToken
+        `event_${data.event.id}`,
+        data.event.managementToken
       );
 
-      setEventId(responseData.event.id);
+      setEventId(data.event.id);
       setSuccess(true);
 
       // Clear form
@@ -92,7 +82,7 @@ export default function EventForm() {
 
       // Redirect to event page after 3 seconds
       setTimeout(() => {
-        router.push(`/event/${responseData.event.id}`);
+        router.push(`/event/${data.event.id}`);
       }, 3000);
     } catch (err) {
       console.error("Error creating event:", err);

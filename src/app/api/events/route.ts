@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       }
     });
 
-    return NextResponse.json(event);
+    return NextResponse.json({ event });
   } catch (error) {
     console.error("Error creating event:", error);
     return NextResponse.json(
