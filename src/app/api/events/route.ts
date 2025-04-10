@@ -3,16 +3,8 @@ import getPrismaClient from "@/lib/prisma";
 import { nanoid } from "nanoid";
 
 export async function POST(request: Request) {
-  let prisma;
+  const prisma = getPrismaClient();
   try {
-    prisma = getPrismaClient();
-    if (!prisma) {
-      return NextResponse.json(
-        { error: "Database connection failed" },
-        { status: 500 }
-      );
-    }
-    
     const { title, description, dates } = await request.json();
 
     if (!title || !description || !dates || !Array.isArray(dates)) {
@@ -47,23 +39,13 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   } finally {
-    if (prisma) {
-      await prisma.$disconnect();
-    }
+    await prisma.$disconnect();
   }
 }
 
 export async function GET(request: Request) {
-  let prisma;
+  const prisma = getPrismaClient();
   try {
-    prisma = getPrismaClient();
-    if (!prisma) {
-      return NextResponse.json(
-        { error: "Database connection failed" },
-        { status: 500 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     const managementToken = searchParams.get("managementToken");
@@ -118,8 +100,6 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   } finally {
-    if (prisma) {
-      await prisma.$disconnect();
-    }
+    await prisma.$disconnect();
   }
 }
