@@ -1,43 +1,39 @@
-import Link from "next/link";
-import ParticipantForm from "@/app/components/ParticipantForm";
-import prisma from "@/lib/prisma";
-import { notFound } from "next/navigation";
-import { cache } from "react";
+import { notFound } from 'next/navigation';
+import { cache } from 'react';
+import getPrismaClient from '@/lib/prisma';
+import Link from 'next/link';
+import ParticipantForm from '@/app/components/ParticipantForm';
 
-// interface EventDate {
-//   id: string;
-//   date: Date;
-//   eventId: string;
-// }
+interface EventDate {
+  id: string;
+  date: Date;
+}
 
-// interface ParticipantDate {
-//   id: string;
-//   date: Date;
-//   participantId: string;
-//   eventDateId: string;
-//   eventDate: EventDate;
-// }
+interface ParticipantDate {
+  id: string;
+  eventDate: EventDate;
+}
 
-// interface Participant {
-//   id: string;
-//   name: string;
-//   createdAt: Date;
-//   updatedAt: Date;
-//   eventId: string;
-//   participantDates: ParticipantDate[];
-// }
+interface Participant {
+  id: string;
+  name: string;
+  participantDates: ParticipantDate[];
+}
 
-// interface Event {
-//   id: string;
-//   title: string;
-//   description: string;
-//   createdAt: Date;
-//   updatedAt: Date;
-//   eventDates: EventDate[];
-//   participants: Participant[];
-// }
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  eventDates: EventDate[];
+  participants: Participant[];
+}
 
 const getEvent = cache(async (id: string) => {
+  const prisma = getPrismaClient();
+  if (!prisma) {
+    throw new Error("Database connection failed");
+  }
+
   try {
     const event = await prisma.event.findUnique({
       where: { id },
@@ -47,11 +43,11 @@ const getEvent = cache(async (id: string) => {
           include: {
             participantDates: {
               include: {
-                eventDate: true,
-              },
-            },
-          },
-        },
+                eventDate: true
+              }
+            }
+          }
+        }
       },
     });
 
@@ -61,21 +57,16 @@ const getEvent = cache(async (id: string) => {
 
     return event;
   } catch (error) {
-    console.error("Error fetching event:", error);
-    return null;
+    console.error('Error fetching event:', error);
+    throw error;
+  } finally {
+    if (process.env.NODE_ENV === 'production') {
+      await prisma.$disconnect();
+    }
   }
 });
 
-export default async function EventPage(props: {
-  params: Promise<{ id: string }>;
-}) {
-  const params = await props.params;
-  const event = await getEvent(params.id);
-
-  if (!event) {
-    notFound();
-  }
-
+function EventPage({ event }: { event: Event }) {
   const availableDates = event.eventDates.map((ed) => ed.date);
 
   return (
@@ -144,4 +135,14 @@ export default async function EventPage(props: {
       </div>
     </div>
   );
+}
+
+export default async function Page({ params }: { params: { id: string } }) {
+  const event = await getEvent(params.id);
+
+  if (!event) {
+    notFound();
+  }
+
+  return <EventPage event={event} />;
 }
