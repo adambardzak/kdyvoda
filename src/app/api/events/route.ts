@@ -22,6 +22,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // Connect to the database
+    await prisma.$connect();
+
     // Create the event with a management token
     const event = await prisma.event.create({
       data: {
@@ -63,6 +66,9 @@ export async function GET(request: Request) {
         { status: 500 }
       );
     }
+
+    // Connect to the database
+    await prisma.$connect();
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
