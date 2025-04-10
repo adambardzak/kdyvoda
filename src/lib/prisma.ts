@@ -9,20 +9,45 @@ const prisma = global.prisma || new PrismaClient({
   log: ['query', 'error', 'warn'],
   datasources: {
     db: {
-      url: process.env.POSTGRES_PRISMA_URL + '?pgbouncer=true&connection_limit=1&pool_timeout=0'
+      url: process.env.POSTGRES_PRISMA_URL
     }
   }
 });
 
-// Add error handling middleware
+// Add middleware to handle prepared statements
 (prisma as any).$use(async (params: any, next: any) => {
+  // Add a unique identifier to each query to prevent prepared statement conflicts
+  const queryId = Math.random().toString(36).substring(7);
+  params.args = {
+    ...params.args,
+    queryId
+  };
+  
   try {
     return await next(params);
   } catch (error: any) {
     if (error.code === '42P05') {
-      // If we get a prepared statement error, retry the query
-      console.log('Retrying query after prepared statement error');
-      return await next(params);
+      // If we get a prepared statement error, create a new client instance and retry
+      console.log('Retrying query with new client instance after prepared statement error');
+      const newClient = new PrismaClient({
+        log: ['query', 'error', 'warn'],
+        datasources: {
+          db: {
+            url: process.env.POSTGRES_PRISMA_URL
+          }
+        }
+      });
+      try {
+        // Use the model and action from the original params
+        const model = params.model;
+        const action = params.action;
+        const result = await (newClient as any)[model][action](params.args);
+        await newClient.$disconnect();
+        return result;
+      } catch (retryError) {
+        await newClient.$disconnect();
+        throw retryError;
+      }
     }
     throw error;
   }
