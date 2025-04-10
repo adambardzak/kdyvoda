@@ -9,20 +9,23 @@ const prisma = global.prisma || new PrismaClient({
   log: ['query', 'error', 'warn'],
   datasources: {
     db: {
-      url: process.env.POSTGRES_PRISMA_URL
+      url: process.env.POSTGRES_PRISMA_URL + '?pgbouncer=true&connection_limit=1&pool_timeout=0'
     }
   }
 });
 
-// Disable prepared statements
+// Add error handling middleware
 (prisma as any).$use(async (params: any, next: any) => {
-  if (params.action === 'query') {
-    params.args = {
-      ...params.args,
-      preparedStatement: false
-    };
+  try {
+    return await next(params);
+  } catch (error: any) {
+    if (error.code === '42P05') {
+      // If we get a prepared statement error, retry the query
+      console.log('Retrying query after prepared statement error');
+      return await next(params);
+    }
+    throw error;
   }
-  return next(params);
 });
 
 if (process.env.NODE_ENV !== 'production') {
