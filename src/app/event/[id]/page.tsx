@@ -32,20 +32,18 @@ interface Event {
   participants: Participant[];
 }
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-  searchParams: { [key: string]: string | string[] | undefined };
-}
-
-export default async function Page({ params }: PageProps) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const resolvedParams = await params;
   const prisma = getPrismaClient();
   let event: Event | null = null;
 
   try {
     event = await prisma.event.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       include: {
         eventDates: true,
         participants: {
