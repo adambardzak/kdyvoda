@@ -10,6 +10,8 @@ interface EventDate {
 
 interface ParticipantDate {
   id: string;
+  eventDateId: string;
+  participantId: string;
   eventDate: EventDate;
 }
 
@@ -23,95 +25,19 @@ interface Event {
   id: string;
   title: string;
   description: string;
+  managementToken: string;
+  createdAt: Date;
+  updatedAt: Date;
   eventDates: EventDate[];
   participants: Participant[];
 }
 
-function EventPage({ event }: { event: Event }) {
-  const availableDates = event.eventDates.map((ed) => ed.date);
+export default async function Page({ params }: { params: { id: string } }) {
+  const prisma = getPrismaClient();
+  let event: Event | null = null;
 
-  return (
-    <div className="space-y-6 sm:space-y-8">
-      <div className="bg-white shadow-sm ring-1 ring-slate-200 rounded-lg p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">
-            {event.title}
-          </h1>
-          <Link
-            href={`/event/${event.id}/results`}
-            className="inline-flex justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
-          >
-            View Results
-          </Link>
-        </div>
-        <p className="text-slate-600">{event.description}</p>
-      </div>
-
-      <div className="bg-white shadow-sm ring-1 ring-slate-200 rounded-lg p-4 sm:p-6">
-        <h2 className="text-lg font-medium text-slate-900 mb-4">Join Event</h2>
-        <ParticipantForm eventId={event.id} availableDates={availableDates} />
-      </div>
-
-      <div className="bg-white shadow-sm ring-1 ring-slate-200 rounded-lg p-4 sm:p-6">
-        <h2 className="text-lg font-medium text-slate-900 mb-4">
-          Current Participants
-        </h2>
-        <div className="space-y-4">
-          {event.participants.length === 0 ? (
-            <p className="text-sm text-slate-600">
-              No participants yet. Be the first to join!
-            </p>
-          ) : (
-            event.participants.map((participant) => (
-              <div
-                key={participant.id}
-                className="border-b border-slate-200 pb-4 last:border-0 last:pb-0"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="text-sm font-medium text-slate-900">
-                    {participant.name}
-                  </div>
-                  <div className="text-sm text-slate-500">
-                    {participant.participantDates.length} date
-                    {participant.participantDates.length !== 1 ? "s" : ""}{" "}
-                    selected
-                  </div>
-                </div>
-                <div className="mt-2">
-                  <div className="flex flex-wrap gap-2">
-                    {participant.participantDates.map((pd) => (
-                      <span
-                        key={pd.eventDate.id}
-                        className="inline-block px-2 py-1 bg-slate-100 text-slate-700 text-sm rounded-md"
-                      >
-                        {pd.eventDate.date.toLocaleDateString()}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default async function Page(props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  let prisma;
-  
   try {
-    prisma = getPrismaClient();
-    if (!prisma) {
-      throw new Error("Database connection failed");
-    }
-
-    // Connect to the database
-    await prisma.$connect();
-
-    const event = await prisma.event.findUnique({
+    event = await prisma.event.findUnique({
       where: { id: params.id },
       include: {
         eventDates: true,
@@ -126,18 +52,83 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         }
       },
     });
-
-    if (!event) {
-      notFound();
-    }
-
-    return <EventPage event={event} />;
   } catch (error) {
     console.error('Error fetching event:', error);
     throw error;
-  } finally {
-    if (prisma) {
-      await prisma.$disconnect();
-    }
   }
+
+  if (!event) {
+    notFound();
+  }
+
+  const availableDates = event.eventDates.map(ed => ed.date);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">{event.title}</h1>
+          <p className="text-gray-600 mb-6">{event.description}</p>
+          
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Dostupné termíny</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {event.eventDates.map((date) => (
+                <div key={date.id} className="bg-blue-50 rounded-lg p-4">
+                  <p className="text-blue-900 font-medium">
+                    {new Date(date.date).toLocaleDateString('cs-CZ', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <ParticipantForm eventId={event.id} availableDates={availableDates} />
+        </div>
+
+        {event.participants.length > 0 && (
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Aktuální účastníci</h2>
+            <div className="space-y-4">
+              {event.participants.map((participant) => (
+                <div key={participant.id} className="border-b border-gray-200 pb-4">
+                  <h3 className="text-lg font-medium text-gray-900">{participant.name}</h3>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600">Vybrané termíny:</p>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {participant.participantDates.map((pd) => (
+                        <span
+                          key={pd.id}
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                        >
+                          {new Date(pd.eventDate.date).toLocaleDateString('cs-CZ', {
+                            day: 'numeric',
+                            month: 'numeric'
+                          })}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-8 text-center">
+          <Link
+            href="/"
+            className="text-blue-600 hover:text-blue-800 font-medium"
+          >
+            ← Zpět na vytvoření nové události
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 }
