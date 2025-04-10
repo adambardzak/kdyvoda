@@ -35,15 +35,15 @@ interface Event {
 export default async function Page({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const resolvedParams = await params;
   const prisma = getPrismaClient();
   let event: Event | null = null;
 
   try {
+    await prisma.$connect();
     event = await prisma.event.findUnique({
-      where: { id: resolvedParams.id },
+      where: { id: params.id },
       include: {
         eventDates: true,
         participants: {
@@ -60,6 +60,8 @@ export default async function Page({
   } catch (error) {
     console.error('Error fetching event:', error);
     throw error;
+  } finally {
+    await prisma.$disconnect();
   }
 
   if (!event) {
