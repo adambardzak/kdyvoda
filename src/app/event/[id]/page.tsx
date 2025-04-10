@@ -137,7 +137,8 @@ function EventPage({ event }: { event: Event }) {
   );
 }
 
-export default async function Page({ params }: { params: { id: string } }) {
+export default async function Page(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const event = await getEvent(params.id);
 
   if (!event) {
