@@ -22,34 +22,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create the event with a management token in a transaction
-    const event = await prisma.$transaction(async (tx) => {
-      const newEvent = await tx.event.create({
-        data: {
-          title,
-          description,
-          managementToken: nanoid(20),
+    // Create the event with a management token
+    const event = await prisma.event.create({
+      data: {
+        title,
+        description,
+        managementToken: nanoid(20),
+        eventDates: {
+          create: dates.map((date: string) => ({
+            date: new Date(date)
+          }))
         }
-      });
-
-      await tx.eventDate.createMany({
-        data: dates.map((date: string) => ({
-          date: new Date(date),
-          eventId: newEvent.id
-        }))
-      });
-
-      return tx.event.findUnique({
-        where: { id: newEvent.id },
-        include: {
-          eventDates: true
-        }
-      });
+      },
+      include: {
+        eventDates: true
+      }
     });
-
-    if (!event) {
-      throw new Error("Failed to create event");
-    }
 
     return NextResponse.json({ event });
   } catch (error) {
