@@ -14,6 +14,17 @@ const prisma = global.prisma || new PrismaClient({
   }
 });
 
+// Disable prepared statements
+(prisma as any).$use(async (params: any, next: any) => {
+  if (params.action === 'query') {
+    params.args = {
+      ...params.args,
+      preparedStatement: false
+    };
+  }
+  return next(params);
+});
+
 if (process.env.NODE_ENV !== 'production') {
   global.prisma = prisma;
 }
