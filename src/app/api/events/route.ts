@@ -5,6 +5,8 @@ import { nanoid } from "nanoid";
 export async function POST(request: Request) {
   const prisma = getPrismaClient();
   try {
+    await prisma.$connect();
+    
     const { title, description, dates } = await request.json();
 
     if (!title || !description || !dates || !Array.isArray(dates)) {
@@ -46,6 +48,8 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   const prisma = getPrismaClient();
   try {
+    await prisma.$connect();
+    
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     const managementToken = searchParams.get("managementToken");

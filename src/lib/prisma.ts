@@ -24,13 +24,13 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Export a function that creates a new client for each request
 export default function getPrismaClient(): PrismaClient {
-  const prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: process.env.POSTGRES_PRISMA_URL
-      }
-    }
-  });
-
-  return prisma;
+  if (process.env.NODE_ENV === 'production') {
+    const prisma = createPrismaClient();
+    // Ensure we disconnect after each request
+    prisma.$connect().then(() => {
+      prisma.$disconnect();
+    });
+    return prisma;
+  }
+  return global.prisma!;
 }
