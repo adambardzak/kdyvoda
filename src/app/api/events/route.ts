@@ -1,90 +1,54 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import getPrismaClient from "@/lib/prisma";
 import { nanoid } from "nanoid";
 
 export async function POST(request: Request) {
+  const prisma = getPrismaClient();
+  if (!prisma) {
+    return NextResponse.json(
+      { error: 'Database connection failed' },
+      { status: 500 }
+    );
+  }
+  
   try {
-    await prisma.$connect();
-    
-    let body;
-    try {
-      body = await request.json();
-    } catch (e) {
-      console.error("Error parsing request body:", e);
-      return NextResponse.json(
-        { error: "Invalid JSON in request body" },
-        { status: 400 }
-      );
-    }
-
-    console.log("Received request body:", body);
-    const { title, description, dates } = body;
+    const { title, description, dates } = await request.json();
 
     if (!title || !description || !dates || !Array.isArray(dates)) {
-      console.error("Missing required fields:", { title, description, dates });
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    console.log("Creating event with dates:", dates);
-
-    // Create management token
-    const managementToken = nanoid();
-
-    try {
-      // Create the event
-      const event = await prisma.event.create({
-        data: {
-          title,
-          description,
-          managementToken,
-        },
-      });
-
-      // Create all dates at once
-      await prisma.eventDate.createMany({
-        data: dates.map(date => ({
-          id: nanoid(),
-          date: new Date(date),
-          eventId: event.id,
-        })),
-      });
-
-      // Fetch the complete event
-      const completeEvent = await prisma.event.findUnique({
-        where: { id: event.id },
-        include: {
-          eventDates: true,
-        },
-      });
-
-      if (!completeEvent) {
-        throw new Error("Failed to fetch created event");
+    // Create the event with a management token
+    const event = await prisma.event.create({
+      data: {
+        title,
+        description,
+        managementToken: nanoid(20),
+        eventDates: {
+          create: dates.map((date: string) => ({
+            date: new Date(date)
+          }))
+        }
+      },
+      include: {
+        eventDates: true
       }
+    });
 
-      console.log("Event created successfully:", completeEvent);
-
-      return NextResponse.json({
-        event: completeEvent,
-        managementToken,
-      });
-    } catch (dbError) {
-      console.error("Database error:", dbError);
-      return NextResponse.json(
-        { error: "Database error: " + (dbError instanceof Error ? dbError.message : String(dbError)) },
-        { status: 500 }
-      );
-    }
+    return NextResponse.json(event);
   } catch (error) {
     console.error("Error creating event:", error);
     return NextResponse.json(
-      { error: "Failed to create event: " + (error instanceof Error ? error.message : String(error)) },
+      { error: "Failed to create event" },
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    if (process.env.NODE_ENV === 'production') {
+      await prisma.$disconnect();
+    }
   }
 }
 
