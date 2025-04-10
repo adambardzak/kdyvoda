@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   const prisma = getPrismaClient();
   if (!prisma) {
     return NextResponse.json(
-      { error: 'Database connection failed' },
+      { error: "Database connection failed" },
       { status: 500 }
     );
   }
@@ -53,6 +53,14 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const prisma = getPrismaClient();
+  if (!prisma) {
+    return NextResponse.json(
+      { error: "Database connection failed" },
+      { status: 500 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -107,5 +115,9 @@ export async function GET(request: Request) {
       { error: "Failed to fetch event" },
       { status: 500 }
     );
+  } finally {
+    if (process.env.NODE_ENV === 'production') {
+      await prisma.$disconnect();
+    }
   }
 }
