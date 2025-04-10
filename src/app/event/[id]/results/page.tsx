@@ -4,13 +4,14 @@ import ResultsPage from '@/app/components/ResultsPage';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
-  const prisma = getPrismaClient();
+  let prisma;
   
-  if (!prisma) {
-    throw new Error("Database connection failed");
-  }
-
   try {
+    prisma = getPrismaClient();
+    if (!prisma) {
+      throw new Error("Database connection failed");
+    }
+
     const event = await prisma.event.findUnique({
       where: { id: params.id },
       include: {
@@ -36,7 +37,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     console.error('Error fetching event:', error);
     throw error;
   } finally {
-    if (process.env.NODE_ENV === 'production') {
+    if (prisma) {
       await prisma.$disconnect();
     }
   }

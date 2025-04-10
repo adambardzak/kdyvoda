@@ -29,12 +29,13 @@ interface Event {
 }
 
 const getEvent = cache(async (id: string) => {
-  const prisma = getPrismaClient();
-  if (!prisma) {
-    throw new Error("Database connection failed");
-  }
-
+  let prisma;
   try {
+    prisma = getPrismaClient();
+    if (!prisma) {
+      throw new Error("Database connection failed");
+    }
+
     const event = await prisma.event.findUnique({
       where: { id },
       include: {
@@ -60,7 +61,7 @@ const getEvent = cache(async (id: string) => {
     console.error('Error fetching event:', error);
     throw error;
   } finally {
-    if (process.env.NODE_ENV === 'production') {
+    if (prisma) {
       await prisma.$disconnect();
     }
   }
