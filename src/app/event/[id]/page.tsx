@@ -108,6 +108,9 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
       throw new Error("Database connection failed");
     }
 
+    // Connect to the database
+    await prisma.$connect();
+
     const event = await prisma.event.findUnique({
       where: { id: params.id },
       include: {
