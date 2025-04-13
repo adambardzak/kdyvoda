@@ -7,7 +7,17 @@ export async function POST(request: Request) {
   try {
     await prisma.$connect();
     
-    const { title, description, dates } = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
+        { status: 400 }
+      );
+    }
+
+    const { title, description, dates } = body;
 
     if (!title || !description || !dates || !Array.isArray(dates)) {
       return NextResponse.json(
@@ -37,7 +47,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error creating event:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to create event" },
+      { error: "Failed to create event" },
       { status: 500 }
     );
   } finally {
@@ -100,7 +110,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Error fetching event:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to fetch event" },
+      { error: "Failed to fetch event" },
       { status: 500 }
     );
   } finally {
